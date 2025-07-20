@@ -28,7 +28,8 @@ contains
    ipedof0 = cosby_1984_table5         !the default pedotransfer function
    end subroutine init_pedof
    
-   subroutine pedotransf(ipedof, sand, clay, watsat, bsw, sucsat, xksat)
+   subroutine pedotransf(ipedof, sand, clay, watsat, bsw, sucsat, xksat, &
+      watsat_cf1, watsat_cf2, bsw_cf1, bsw_cf2, xksat_cf1, xksat_cf2, sucsat_cf1, sucsat_cf2)
    !pedotransfer function to compute hydraulic properties of mineral soil
    !based on input soil texture
    
@@ -42,6 +43,11 @@ contains
    real(r8), intent(out):: bsw    !b shape parameter
    real(r8), intent(out):: sucsat !mm, soil matric potential
    real(r8), intent(out):: xksat  !mm/s, saturated hydraulic conductivity
+
+   real(r8), intent(in) :: watsat_cf1, watsat_cf2
+   real(r8), intent(in) :: bsw_cf1, bsw_cf2
+   real(r8), intent(in) :: xksat_cf1, xksat_cf2
+   real(r8), intent(in) :: sucsat_cf1, sucsat_cf2
    
    character(len=32) :: subname = 'pedotransf'  ! subroutine name 
    select case (ipedof)
@@ -50,7 +56,8 @@ contains
    case (noilhan_lacarrere_1995)
       call pedotransf_noilhan_lacarrere1995(sand, clay, watsat, bsw, sucsat, xksat) 
    case (cosby_1984_table5)  
-      call pedotransf_cosby1984_table5(sand, clay, watsat, bsw, sucsat, xksat)
+      call pedotransf_cosby1984_table5(sand, clay, watsat, bsw, sucsat, xksat, &
+      watsat_cf1, watsat_cf2, bsw_cf1, bsw_cf2, xksat_cf1, xksat_cf2, sucsat_cf1, sucsat_cf2)
    case default
       call endrun(subname // ':: a pedotransfer function must be specified!')  
    end select
@@ -80,7 +87,8 @@ contains
    end subroutine pedotransf_cosby1984_table4
    
 !------------------------------------------------------------------------------------------
-   subroutine pedotransf_cosby1984_table5(sand, clay, watsat, bsw, sucsat, xksat)
+   subroutine pedotransf_cosby1984_table5(sand, clay, watsat, bsw, sucsat, xksat, &
+      watsat_cf1, watsat_cf2, bsw_cf1, bsw_cf2, xksat_cf1, xksat_cf2, sucsat_cf1, sucsat_cf2)
    !
    !DESCRIPTIONS
    !compute hydraulic properties based on functions derived from Table 5 in cosby et al, 1984
@@ -93,12 +101,21 @@ contains
    real(r8), intent(out):: bsw    !b shape parameter
    real(r8), intent(out):: sucsat !mm, soil matric potential
    real(r8), intent(out):: xksat  !mm/s, saturated hydraulic conductivity
+
+   real(r8), intent(in) :: watsat_cf1, watsat_cf2
+   real(r8), intent(in) :: bsw_cf1, bsw_cf2
+   real(r8), intent(in) :: xksat_cf1, xksat_cf2
+   real(r8), intent(in) :: sucsat_cf1, sucsat_cf2
    
    !Cosby et al. Table 5     
-   watsat = 0.489_r8 - 0.00126_r8*sand
-   bsw    = 2.91_r8 + 0.159_r8*clay
-   sucsat = 10._r8 * ( 10._r8**(1.88_r8-0.0131_r8*sand) )            
-   xksat         = 0.0070556_r8 *( 10._r8**(-0.884_r8+0.0153_r8*sand) ) ! mm/s, from table 5 
+   !watsat = 0.489_r8 - 0.00126_r8*sand
+   !bsw    = 2.91_r8 + 0.159_r8*clay
+   !sucsat = 10._r8 * ( 10._r8**(1.88_r8-0.0131_r8*sand) )            
+   !xksat         = 0.0070556_r8 *( 10._r8**(-0.884_r8+0.0153_r8*sand) ) ! mm/s, from table 5 
+   watsat = watsat_cf1 - watsat_cf2*sand
+   bsw    = bsw_cf1 + bsw_cf2*clay
+   sucsat = 10._r8 * ( 10._r8**(sucsat_cf1-sucsat_cf2*sand) )            
+   xksat  = 0.0070556_r8 * ( 10._r8**(xksat_cf1+xksat_cf2*sand) ) ! mm/s, from table 5 
       
    end subroutine pedotransf_cosby1984_table5
    

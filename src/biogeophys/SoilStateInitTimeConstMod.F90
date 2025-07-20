@@ -41,6 +41,14 @@ module SoilStateInitTimeConstMod
      real(r8) :: sand_pf             ! Perturbation factor (via addition) for percent sand (percent)
      real(r8) :: clay_pf             ! Perturbation factor (via addition) for percent clay of clay+silt (percent)
      real(r8) :: om_frac_sf          ! Scale factor for organic matter fraction (unitless)
+     real(r8) :: watsat_cf1
+     real(r8) :: watsat_cf2
+     real(r8) :: bsw_cf1
+     real(r8) :: bsw_cf2
+     real(r8) :: xksat_cf1
+     real(r8) :: xksat_cf2
+     real(r8) :: sucsat_cf1
+     real(r8) :: sucsat_cf2
   end type params_type
   type(params_type), private ::  params_inst
 
@@ -152,6 +160,15 @@ contains
     call readNcdioScalar(ncid, 'clay_pf', subname, params_inst%clay_pf)
     ! Scale factor for organic matter fraction (unitless)
     call readNcdioScalar(ncid, 'om_frac_sf', subname, params_inst%om_frac_sf)
+
+    call readNcdioScalar(ncid, 'watsat_cf1', subname, params_inst%watsat_cf1)
+    call readNcdioScalar(ncid, 'watsat_cf2', subname, params_inst%watsat_cf2)
+    call readNcdioScalar(ncid, 'bsw_cf1', subname, params_inst%bsw_cf1)
+    call readNcdioScalar(ncid, 'bsw_cf2', subname, params_inst%bsw_cf2)
+    call readNcdioScalar(ncid, 'xksat_cf1', subname, params_inst%xksat_cf1)
+    call readNcdioScalar(ncid, 'xksat_cf2', subname, params_inst%xksat_cf2)
+    call readNcdioScalar(ncid, 'sucsat_cf1', subname, params_inst%sucsat_cf1)
+    call readNcdioScalar(ncid, 'sucsat_cf2', subname, params_inst%sucsat_cf2)
 
   end subroutine readParams
 
@@ -528,7 +545,12 @@ contains
 
                 ipedof=get_ipedof(0)
                 call pedotransf(ipedof, sand, clay, &
-                     soilstate_inst%watsat_col(c,lev), soilstate_inst%bsw_col(c,lev), soilstate_inst%sucsat_col(c,lev), xksat)
+                                soilstate_inst%watsat_col(c,lev), soilstate_inst%bsw_col(c,lev), &
+                                soilstate_inst%sucsat_col(c,lev), xksat, &
+                                params_inst%watsat_cf1, params_inst%watsat_cf2, &
+                                params_inst%bsw_cf1, params_inst%bsw_cf2, &
+                                params_inst%xksat_cf1, params_inst%xksat_cf2, &
+                                params_inst%sucsat_cf1, params_inst%sucsat_cf2)
 
                 om_watsat         = max(0.93_r8 - 0.1_r8   *(zsoi(lev)/zsapric), 0.83_r8)
                 om_b              = min(2.7_r8  + 9.3_r8   *(zsoi(lev)/zsapric), 12.0_r8)
